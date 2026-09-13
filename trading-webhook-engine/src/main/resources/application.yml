@@ -1,0 +1,133 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: trading-webhook-engine
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/trading?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 3000ms
+
+# ---------------------------------------------------------------------
+# Application-specific configuration.
+# Only the "webhook" section is actually consumed in Phase 1.
+# Everything else is declared now (per the target architecture) so later
+# phases only need to add code, not config plumbing.
+# ---------------------------------------------------------------------
+trading:
+  timezone: Asia/Kolkata
+  mode: PAPER   # PAPER (default, safe) | LIVE (real orders - see LiveModeSafety in later phases)
+
+  # Three DISTINCT Asia/Kolkata times:
+  #   start          09:25 - strategy session opens, new entries allowed
+  #   trading-cutoff 15:10 - SAFETY EXIT: stop new entries + auto-close system-managed
+  #                          positions. This is NOT the market close.
+  #   close          15:30 - official NSE close; everything stays disabled, JAR keeps running
+  market:
+    start: "09:25"
+    trading-cutoff: "15:10"
+    close: "15:30"
+
+  session:
+    enabled: true
+    auto-close-positions: true
+    safety-exit-time: "15:10"
+
+  # Automatic profit-target exit (TARGET-ONLY - no stop-loss). After an entry
+  # order is actually FILLED at Groww: targetPrice = actualFilledEntryPrice +
+  # targetPoints; a single poller watches the exact option LTP and submits
+  # exactly one SELL when LTP >= targetPrice. Per-user Target Points live in
+  # fno_trade_config; default-points is the fallback.
+  exit:
+    target:
+      enabled: true
+      default-points: 8
+      min-points: 0.05
+      max-points: 2000
+      # ISO-8601 duration (PT<n>S) - consumed by both @Scheduled(fixedRateString) and Duration binding.
+      poll-interval: PT3S
+      tick-size: 0.05
+
+  webhook:
+    # Shared-secret webhook authentication (Phase 1).
+    # Never commit a real value here - always supplied via env var.
+    secret: ${TRADINGVIEW_WEBHOOK_SECRET:}
+    auth-mode: SHARED_SECRET   # SHARED_SECRET (Phase 1) | MUTUAL_TLS (future)
+
+  # Non-secret Groww API endpoint configuration ONLY - the same for every
+  # user, no credentials here. Each user's own API key/TOTP secret is USER
+  # DATA, stored per-user (encrypted) in groww_configuration and entered via
+  # the Groww Settings page - see GrowwConfigurationEntity/GrowwSettingsService.
+  groww:
+    base-url: https://api.groww.in
+    instrument-csv-url: https://growwapi-assets.groww.in/instruments/instrument.csv
+    api-version: "1.0"
+
+  quantity:
+    lots: 1
+
+  option:
+    expiry-selection: NEAREST
+    strike-selection: ATM
+    option-type: AUTO
+    strike-offset: 0
+
+  order:
+    product: NRML
+    order-type: MARKET
+    validity: DAY
+
+  risk:
+    max-orders-per-day: 10
+    max-open-positions: 3
+    max-quantity: 1000
+    max-daily-loss: 5000
+    max-orders-per-signal: 1
+
+  allow-short-selling: false
+
+  auth:
+    # HMAC-SHA signing key for user session JWTs (>= 32 bytes). Dev-only
+    # default, same convention as the Groww credentials above - always
+    # supplied via env var in a real deployment.
+    jwt-secret: ${JWT_SECRET:x6Sq8Nb04pmWhBUweS8gS3kbid5DyA8euSLJFP4lDDsW+WXJZis6kPxbZgtrYGj+}
+    jwt-validity-minutes: 1440
+    # AES-256 key (base64, 32 bytes) used to encrypt each user's Groww API
+    # key/TOTP secret at rest in groww_configuration. Dev-only default.
+    encryption-key: ${CREDENTIAL_ENCRYPTION_KEY:YoklpUZXeEBdR01dBBMY9ihYb7LK4RHlPPHoCDDTz2Q=}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    root: INFO
+    com.example.trading: INFO
