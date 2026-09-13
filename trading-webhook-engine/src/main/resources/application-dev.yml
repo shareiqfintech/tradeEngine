@@ -1,0 +1,17 @@
+# ---------------------------------------------------------------------
+# Local development profile.
+# Activate with: --spring.profiles.active=dev
+#
+# Provides a default webhook secret ONLY so it is convenient to curl the
+# webhook on a laptop without exporting an env var first. Do NOT reuse
+# this value anywhere near production - it is public because it is
+# committed to source control.
+# ---------------------------------------------------------------------
+trading:
+  webhook:
+    secret: ${TRADINGVIEW_WEBHOOK_SECRET:dev-secret-change-me}
+
+logging:
+  level:
+    root: INFO
+    com.example.trading: DEBUG

@@ -1,0 +1,20 @@
+# ---------------------------------------------------------------------
+# Production profile.
+# Activate with: --spring.profiles.active=prod
+#
+# No secrets or defaults are set here on purpose. In production every
+# sensitive value MUST come from the environment
+# (TRADINGVIEW_WEBHOOK_SECRET, JWT_SECRET, CREDENTIAL_ENCRYPTION_KEY,
+# DB_HOST, DB_USERNAME, DB_PASSWORD, REDIS_HOST, REDIS_PORT).
+# Startup should fail loudly rather than silently run unauthenticated
+# if TRADINGVIEW_WEBHOOK_SECRET is missing.
+#
+# There is deliberately NO GROWW_API_KEY/GROWW_TOTP_SECRET here: a Groww
+# API key/TOTP secret is per-user data, entered via the Groww Settings
+# page and stored encrypted in groww_configuration - never application
+# configuration. See GrowwSettingsService/CredentialEncryptionService.
+# ---------------------------------------------------------------------
+logging:
+  level:
+    root: WARN
+    com.example.trading: INFO

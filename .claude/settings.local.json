@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:/Users/muniyasamy.baskaran/Downloads/trading-webhook-engine/trading-webhook-engine\" && \\\\ *)",
+      "Bash(grep -qE 'Started TradingApplication|APPLICATION FAILED|Application run failed' __TRACKED_VAR__/backend3.log)",
+      "Bash(break)",
+      "Bash(grep -E 'Started TradingApplication|Application run failed|SESSION_STATE_RECOMPUTED|TARGET_MONITOR' __TRACKED_VAR__/backend3.log)",
+      "Bash(curl -s -m 5 http://localhost:8080/actuator/health)",
+      "Bash(curl -s -m 10 -X POST http://localhost:8080/api/webhook/tradingview -H 'X-TradingView-Secret: test-secret' -H 'Content-Type: application/json' -d '{\"signalId\":\"TGT-DEMO-__CMDSUB_OUTPUT__\",\"action\":\"BUY\",\"underlying\":\"NIFTY\",\"exchange\":\"NSE\",\"timeframe\":\"15m\",\"price\":142.20,\"timestamp\":\"2026-09-10T22:54:00+05:30\"}')",
+      "Bash(curl -s -m 10 \"http://localhost:8080/api/trading/audit?eventType=TARGET_MONITOR_STARTED&size=3\")",
+      "Bash(docker exec *)",
+      "Bash(curl -s -m 10 \"http://localhost:8080/api/trading/audit?signalId=TGT-DEMO-1789061097&size=4\")",
+      "Bash(curl -s -m 10 \"http://localhost:8080/api/trading/audit?eventType=TARGET_POSITION_CLOSED&size=2\")",
+      "Bash(curl -s -m 5 -o /dev/null -w \"5173 -> HTTP %{http_code}\\\\n\" http://localhost:5173)",
+      "Bash(curl -s -m 5 -o /dev/null -w \"8080 health -> HTTP %{http_code}\\\\n\" http://localhost:8080/actuator/health)",
+      "Bash(netstat -ano)",
+      "Bash(curl -s -m 5 -o /dev/null -w \"backend 8080 -> HTTP %{http_code}\\\\n\" http://localhost:8080/actuator/health)",
+      "Bash(curl -s -m 5 -o /dev/null -w \"frontend 5173 -> HTTP %{http_code}\\\\n\" http://localhost:5173)"
+    ]
+  }
+}

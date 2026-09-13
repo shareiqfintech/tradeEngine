@@ -1,0 +1,52 @@
+# Test-only configuration. Overrides src/main/resources/application.yml on
+# the test classpath. No real MySQL/Redis/Groww is ever required to run
+# `mvn test`:
+#   - @WebMvcTest slices only load the web layer (service beans are mocked).
+#   - @DataJpaTest uses this H2-in-MySQL-compatibility-mode datasource, with
+#     `spring.test.database.replace: NONE` so Spring Boot does NOT swap it
+#     for a plain-mode embedded DB (which would break the Flyway migration's
+#     MySQL syntax).
+#   - Everything else is a plain Mockito unit test with no Spring context at
+#     all, so Redis/Groww are simple mocked collaborators.
+spring:
+  application:
+    name: trading-webhook-engine-test
+
+  test:
+    database:
+      replace: NONE
+
+  datasource:
+    url: "jdbc:h2:mem:trading-test;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE"
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: localhost
+      port: 6399 # never actually contacted in tests - no test touches a real Redis
+
+trading:
+  webhook:
+    secret: test-secret
+    auth-mode: SHARED_SECRET
+  mode: PAPER
+  auth:
+    jwt-secret: test-only-jwt-signing-secret-must-be-at-least-32-bytes-long
+    jwt-validity-minutes: 1440
+    encryption-key: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+
+logging:
+  level:
+    root: WARN
+    com.example.trading: DEBUG

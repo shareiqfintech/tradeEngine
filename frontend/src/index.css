@@ -1,0 +1,225 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ------------------------------------------------------------------------
+ * Design tokens - dark trading-terminal theme is the DEFAULT appearance
+ * (no class required). Adding a `light` class to <html> switches to the
+ * optional light theme. Tailwind v4's `@theme inline` block below maps
+ * these semantic variables onto generated utilities (bg-background,
+ * text-foreground, border-border, etc.) so every component just uses
+ * ordinary Tailwind classes.
+ * ---------------------------------------------------------------------- */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --radius: 0.5rem;
+
+  /* Base surfaces - deep charcoal-navy, not pure black */
+  --background: #0a0d13;
+  --foreground: #e6e9ef;
+
+  --card: #10141c;
+  --card-foreground: #e6e9ef;
+
+  --popover: #11151e;
+  --popover-foreground: #e6e9ef;
+
+  --sidebar: #0c0f16;
+  --sidebar-foreground: #cbd2df;
+  --sidebar-border: #1c2230;
+  --sidebar-accent: #161b26;
+  --sidebar-accent-foreground: #f3f5f8;
+
+  --border: #1e2530;
+  --input: #1a212c;
+  --ring: #3b82f6;
+
+  --muted: #151a23;
+  --muted-foreground: #8992a3;
+
+  /* Primary accent - a cool "terminal" blue */
+  --primary: #3b82f6;
+  --primary-foreground: #f5f8ff;
+
+  --secondary: #1a212c;
+  --secondary-foreground: #e6e9ef;
+
+  --accent: #1a212c;
+  --accent-foreground: #e6e9ef;
+
+  /* Status colors - used consistently for BUY/profit/healthy vs SELL/loss/critical */
+  --success: #22c55e;
+  --success-foreground: #052e16;
+  --success-muted: #12291b;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #2c0a0a;
+  --destructive-muted: #2a1416;
+
+  --warning: #eab308;
+  --warning-foreground: #1c1503;
+  --warning-muted: #2a2210;
+
+  --info: #38bdf8;
+  --info-foreground: #04222f;
+  --info-muted: #102532;
+
+  --chart-1: #3b82f6;
+  --chart-2: #22c55e;
+  --chart-3: #eab308;
+  --chart-4: #a855f7;
+  --chart-5: #ef4444;
+
+  --shadow-color: 0deg 0% 0%;
+}
+
+.light {
+  --background: #f7f8fa;
+  --foreground: #0f1115;
+
+  --card: #ffffff;
+  --card-foreground: #0f1115;
+
+  --popover: #ffffff;
+  --popover-foreground: #0f1115;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #334155;
+  --sidebar-border: #e2e8f0;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f1115;
+
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #3b82f6;
+
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  --primary: #2563eb;
+  --primary-foreground: #f8fafc;
+
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f1115;
+
+  --accent: #f1f5f9;
+  --accent-foreground: #0f1115;
+
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --success-muted: #dcfce7;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --destructive-muted: #fee2e2;
+
+  --warning: #ca8a04;
+  --warning-foreground: #ffffff;
+  --warning-muted: #fef9c3;
+
+  --info: #0284c7;
+  --info-foreground: #ffffff;
+  --info-muted: #e0f2fe;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted: var(--success-muted);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-muted: var(--destructive-muted);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-muted: var(--warning-muted);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-muted: var(--info-muted);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  html.light {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "tnum" 1, "cv11" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--primary) 35%, transparent);
+  }
+
+  /* Slim, subtle scrollbars - dense tables/lists should never feel clunky */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-feature-settings: "tnum" 1;
+  }
+}
