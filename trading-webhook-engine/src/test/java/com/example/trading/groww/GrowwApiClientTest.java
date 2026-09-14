@@ -4,21 +4,30 @@ import com.example.trading.config.TradingProperties;
 import com.example.trading.exception.GrowwApiException;
 import com.example.trading.groww.dto.GrowwOrderRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 /**
  * Exercises {@link GrowwApiClient} end-to-end against a real (but local,
@@ -39,6 +48,22 @@ class GrowwApiClientTest {
     private final AtomicReference<String> lastAuthHeader = new AtomicReference<>();
     private final AtomicReference<String> lastApiVersionHeader = new AtomicReference<>();
 
+    /** Real GrowwTokenManager backed by a fake Redis (a plain Map behind mocked calls). */
+    @SuppressWarnings("unchecked")
+    private static GrowwTokenManager newTokenManager() {
+        Map<String, String> fakeRedis = new HashMap<>();
+        StringRedisTemplate redisTemplate = mock(StringRedisTemplate.class);
+        ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(anyString())).thenAnswer(inv -> fakeRedis.get(inv.getArgument(0, String.class)));
+        doAnswer(inv -> {
+            fakeRedis.put(inv.getArgument(0, String.class), inv.getArgument(1, String.class));
+            return null;
+        }).when(valueOperations).set(anyString(), anyString(), any(Duration.class));
+        when(redisTemplate.delete(anyString())).thenAnswer(inv -> fakeRedis.remove(inv.getArgument(0, String.class)) != null);
+        return new GrowwTokenManager(redisTemplate, new ObjectMapper().registerModule(new JavaTimeModule()));
+    }
+
     @BeforeEach
     void setUp() throws IOException {
         server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
@@ -48,7 +73,7 @@ class GrowwApiClientTest {
         properties.getGroww().setBaseUrl("http://localhost:" + port);
         properties.getGroww().setApiVersion("1.0");
 
-        tokenManager = new GrowwTokenManager();
+        tokenManager = newTokenManager();
 
         WebClient apiClient = WebClient.builder().baseUrl(properties.getGroww().getBaseUrl()).build();
         WebClient assetClient = WebClient.builder().build();

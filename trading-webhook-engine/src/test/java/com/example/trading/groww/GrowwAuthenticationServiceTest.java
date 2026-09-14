@@ -8,8 +8,16 @@ import com.example.trading.groww.dto.GrowwTokenResponse;
 import com.example.trading.security.DecryptedGrowwCredentials;
 import com.example.trading.service.AuditService;
 import com.example.trading.service.GrowwSettingsService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,10 +37,26 @@ class GrowwAuthenticationServiceTest {
     private TradingProperties properties;
     private GrowwAuthenticationService service;
 
+    /** Real GrowwTokenManager backed by a fake Redis (a plain Map behind mocked calls). */
+    @SuppressWarnings("unchecked")
+    private static GrowwTokenManager newTokenManager() {
+        Map<String, String> fakeRedis = new HashMap<>();
+        StringRedisTemplate redisTemplate = mock(StringRedisTemplate.class);
+        ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(anyString())).thenAnswer(inv -> fakeRedis.get(inv.getArgument(0, String.class)));
+        doAnswer(inv -> {
+            fakeRedis.put(inv.getArgument(0, String.class), inv.getArgument(1, String.class));
+            return null;
+        }).when(valueOperations).set(anyString(), anyString(), any(Duration.class));
+        when(redisTemplate.delete(anyString())).thenAnswer(inv -> fakeRedis.remove(inv.getArgument(0, String.class)) != null);
+        return new GrowwTokenManager(redisTemplate, new ObjectMapper().registerModule(new JavaTimeModule()));
+    }
+
     @BeforeEach
     void setUp() {
         growwApiClient = mock(GrowwApiClient.class);
-        tokenManager = new GrowwTokenManager();
+        tokenManager = newTokenManager();
         growwSettingsService = mock(GrowwSettingsService.class);
         auditService = mock(AuditService.class);
         properties = new TradingProperties();
